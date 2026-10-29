@@ -7,6 +7,11 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- **Proposal: a human-gated profile (`proposals/human-gated-profile.md`).** An adopter where a person commits and a
+  person merges lists, with evidence, the defaults that commit, merge or guess commands on their own (the `Stop`-hook
+  `wip`, PR mode with auto-merge, `audit-repo` landing its report, `gateEdit: warn`, unpinned install, the `pnpm`
+  fallback) and proposes one pull request per change, each with its self-test or eval. Documentation only.
+
 - **Leases (`leases`).** Parallel sessions learned about each other only at `land`, when the second branch hit the
   first one's change. `reference/scripts/leases.ts` keeps one reservation per session branch that expires on its own
   (`ttlMinutes`, renewed by the `Stop` hook; a removed worktree holds nothing), so a dead session never blocks anyone.
