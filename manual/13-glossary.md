@@ -35,3 +35,11 @@
 | **Wave** | Roadmap grouping by goal; dependencies cannot point to a later wave. |
 | **wip** | Rolling commit left by the `Stop` hook; `wt:commit` absorbs it; `land` rejects it on its own. |
 | **Worktree** | Working copy linked to the same repo, with its own branch; one per session, in `.claude/worktrees/`. |
+| **Decision point** | The one component outside the model that recomputes checks, band, permissions and approvals, executes, and never calls the model (chapter 19 §5). |
+| **Two-key interaction** | One of four typed agent-to-agent messages (`query`, `task_request`, `delegated_effect`, `subscribe`) allowed only if the sender may send it and the receiver accepts it. |
+| **Least authority of the chain** | A receiver acts with the minimum authority along the chain of agents that led to it, never more than the original sender. |
+| **Cross-provider judge** | An LLM judge from a different provider than the agent it evaluates; the only kind that counts towards a promotion, after meeting agreement thresholds. |
+| **L0–L3** | Autonomy levels per (agent, task), earned through blind audit; launching a new version never raises the level. |
+| **Launch gate** | Validation → golden set → cross-provider judge → red teaming → human approval, for every new version of an agent. |
+| **Envelope encryption** | Data encrypted with a data key (DEK) that is itself wrapped by a key-encryption key (KEK) per purpose. |
+| **Crypto-shredding** | Erasing data by destroying the keys that encrypt it. |

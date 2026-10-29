@@ -14,7 +14,8 @@ The full invariant list (each rule with its why) and a short summary of the exec
 [chapter 05](05-architecture-and-docs.md) ("The reference project's invariants, generalized" and "Execution-safety
 patterns for agent products"); this chapter does not repeat that list. It gives each pattern's reasoning, the
 incident or failure mode behind it, how it is enforced, and how to adopt it. Chapter 16 §9 covers the LLM
-integration in token terms.
+integration in token terms. Chapter 19 covers what surrounds this design: the architecture style of each piece, the
+agent pattern for each need, multi-agent communication, judges, autonomy levels, container images and encryption.
 
 ## The shape of the system
 

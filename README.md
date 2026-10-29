@@ -158,6 +158,7 @@ call them. The manual is never loaded wholesale: the `playbook` skill reads a si
 | 16 | [Efficiency and real-world use](manual/16-efficiency-and-real-world-use.md) | Token economics, caching, effort and model routing, parallelism limits, rollout in real organizations |
 | 17 | [Agentic system architecture](manual/17-agentic-system-architecture.md) | Building a product that is an LLM agent: kernel/domain, read-only loop, policy and approvals, budget, write pipeline, idempotent effects, ledgers, agent-blind simulator, storage ports |
 | 18 | [Transferability and handover](manual/18-transferability-and-handover.md) | Proving another team can absorb the project: fresh-clone test, new-agent test, explicit ownership, no hidden knowledge, handover checklist |
+| 19 | [Architecture styles and agent patterns](manual/19-architecture-styles-and-agent-patterns.md) | Architecture style per piece, the model as an adapter, the least-autonomy pattern ladder, processes before orchestrators, one decision point, two-key agent-to-agent interactions, MCP and A2A, trustworthy judges, autonomy levels and launch gate, layered images, envelope encryption |
 
 ## Repository layout
 
@@ -167,7 +168,7 @@ call them. The manual is never loaded wholesale: the `playbook` skill reads a si
 ├── ADOPTION.md            Level-by-level adoption checklist (1 hour → 1 month)
 ├── INTEGRATION.md         Contract a project exposes: swarm.json, command guarantees, conformance checks, stacks
 ├── MAINTAINING.md         Running the protocol inside a company: ownership, releases, updates, measurement
-├── manual/                19 chapters, one topic each
+├── manual/                20 chapters, one topic each
 ├── checklists/            One-screen checklists, the defect-class catalog and the handover checklist
 ├── templates/             Drop-in files: CLAUDE.md, settings, CI, ADR, OpenSpec, tests, review prompts
 ├── reference/             Reference implementation: specification, generalized code and its self-tests (self-test/)

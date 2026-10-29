@@ -45,6 +45,22 @@
 
 
 Figures from third-party sources (vendor blogs) are cited as indicative, not as a standard.
+- [Building effective agents](https://www.anthropic.com/engineering/building-effective-agents) — Anthropic
+  Engineering; workflows versus agents and the pattern ladder (chapter 19).
+- [How we built our multi-agent research system](https://www.anthropic.com/engineering/multi-agent-research-system) —
+  Anthropic Engineering; cost of orchestrator-workers.
+- [Why Do Multi-Agent LLM Systems Fail? (MAST)](https://arxiv.org/abs/2503.13657) — Cemri et al., 2025; failure
+  taxonomy of multi-agent systems.
+- [Defeating Prompt Injections by Design (CaMeL)](https://arxiv.org/abs/2503.18813) — Debenedetti et al., 2025; a
+  barrier outside the model with provenance.
+- [Agent2Agent (A2A) protocol](https://a2a-protocol.org/) and [Model Context Protocol](https://modelcontextprotocol.io/)
+  — agent-to-agent and agent-to-tool standards.
+- [CloudEvents 1.0](https://cloudevents.io/) and [CEL](https://cel.dev/) — event envelope and declarative checks.
+- [Hexagonal architecture](https://alistair.cockburn.us/hexagonal-architecture/) — Alistair Cockburn.
+- [NIST SP 800-38D](https://csrc.nist.gov/pubs/sp/800/38/d/final) and
+  [SP 800-57 Part 1](https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final) — GCM limits and cryptoperiods.
+- [Docker build best practices](https://docs.docker.com/build/building/best-practices/) and the
+  [OWASP Docker Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html).
 
 ## Skills and agents
 

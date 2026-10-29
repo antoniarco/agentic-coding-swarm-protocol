@@ -7,6 +7,15 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- **Architecture styles and agent patterns (manual chapter 19).** Which architecture style each piece of an agent
+  product follows (hexagonal packages in a modular monolith, a persistent state machine for the runtime, events
+  between modules, sagas for known processes, a microkernel for plugins), the model as an adapter behind a port with
+  SOLID mapped to agents, the least-autonomy pattern ladder with the patterns rejected on purpose, one decision point
+  outside the model with checks as data, four two-key agent-to-agent interactions with least authority of the chain,
+  MCP for tools and A2A only at the boundary, judges from another provider with agreement thresholds, autonomy levels
+  earned per agent and task with a launch gate, layered container images, and envelope encryption with purpose keys
+  and HMAC pseudonyms. Glossary and sources updated. Documentation only; a project does not need to act.
+
 - **Leases (`leases`).** Parallel sessions learned about each other only at `land`, when the second branch hit the
   first one's change. `reference/scripts/leases.ts` keeps one reservation per session branch that expires on its own
   (`ttlMinutes`, renewed by the `Stop` hook; a removed worktree holds nothing), so a dead session never blocks anyone.
