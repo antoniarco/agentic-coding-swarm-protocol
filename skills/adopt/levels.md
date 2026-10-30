@@ -111,7 +111,11 @@ Depends on the scenario (chapter 16 §0):
   `${CLAUDE_SKILL_DIR}/../../templates/githooks/pre-push` with `git config core.hooksPath`.
 - **B, D, E (slow CI, PR teams, several machines):** `wt.ts` and `adr.ts`, but `land` in PR mode (rebase, quick
   gate, push the branch, PR with auto-merge; the merge queue runs the full gate and numbers ADRs). Branch
-  protection instead of the publisher hook.
+  protection instead of the publisher hook. Reviews gate the merge through
+  `${CLAUDE_SKILL_DIR}/../../templates/github/workflows/review-gate.yml` and
+  `${CLAUDE_SKILL_DIR}/../../reference/scripts/pr-review-gate.ts` (to `scripts/dev/`), with `review-gate` a required
+  status check and the `review.pr` block in `swarm.json`; ask the user whether Copilot reviews the PRs and how long
+  a bot may take (template 2 h).
   The merge queue, branch protection or rulesets and attestations depend on the code host's plan and on the
   repository being public or private: verify against the project's plan before choosing B, D or E, and use the
   fallbacks in manual chapter 16 §0 ("Verify against your plan") when a feature is missing.
@@ -133,7 +137,8 @@ Then, in every scenario:
    not ask for a receipt on a core logic change. For a library, use `mode: always`. Then run the `review` skill once
    on the adoption change so the first receipt exists, and show the `land` refusal when it is missing. In PR mode
    there is no local `land` check: a required review by `CODEOWNERS` in which the reviewer attaches the `reviewer`
-   agent's report counts as the receipt.
+   agent's report counts as the receipt, and the `review-gate` status must be required: open a test PR with a
+   reviewer requested and show it `pending`, then `success` once the review is in.
 6. `land` tightens the ratchets (level 1 step 5) and commits only that file.
 7. **Findings ledger and closure gate** (L2.8, L2.9). `${CLAUDE_SKILL_DIR}/../../reference/scripts/findings.ts` to
    `scripts/dev/`, `commands.findings` and the `findings` block in `swarm.json` (template SLA 2 / 14 / 60 days,

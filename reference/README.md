@@ -205,6 +205,34 @@ gate in local `land` and merge the verified branch without rewriting it ([manual
 **PR mode:** the equivalent is a required review on protected paths (`CODEOWNERS` with the sensitive globs) plus
 branch protection; the receipt is then the review approval on the pull request.
 
+## PR review gate — `pr-review-gate.ts`
+
+**Purpose:** in PR mode, auto-merge must not run before the reviewers the pull request asked for (Copilot, another
+bot, a person) have answered and their threads are closed. How long they take is unknown, so the gate never waits on
+a clock: it turns the pull request's state into the commit status `review-gate` on the head SHA, recomputed on every
+review event, and auto-merge waits on that required check.
+
+- **Input:** one GraphQL query (`QUERY` in the script) for the pending review requests, the reviews, the review
+  threads and the `REVIEW_REQUESTED_EVENT` timeline (when each reviewer was asked; `filteredCount`, since the
+  connection's `totalCount` ignores `itemTypes`). `--input <file>` reads a saved answer instead, for tests.
+- **Verdict:** `failure` for any unresolved thread (outdated ones included: each is fixed or answered, then
+  resolved) or a reviewer whose latest review is `CHANGES_REQUESTED`; `pending` for a draft, a requested person, a
+  requested bot still inside `review.pr.botTimeoutHours` of its request (a bot request with no known time has no
+  deadline), or, with `requireReviewer`, a pull request that never requested anyone; `success` otherwise, naming any
+  bot that did not answer in time. A list that fills its 100-item page fails rather than guess. Bots are `Bot`
+  actors, `[bot]` logins, Copilot's logins and `review.pr.bots`.
+- **CLI:** `check --pr <n> [--post]`, `sweep [--post]` (every open pull request; the scheduled run that expires bot
+  deadlines). Without `--post`, exit 0 / 1 / 3 for success / failure / pending; with it, the status carries the
+  verdict and the command exits 0.
+- **Workflow:** [templates/github/workflows/review-gate.yml](../templates/github/workflows/review-gate.yml). It runs
+  the script from the integration branch (a pull request cannot edit its own gate), re-evaluates on review, review
+  comment, thread and request events and every 30 minutes, and opens a `post-merge-review` issue with links to any
+  review left after the merge, for the next session to triage into the findings ledger.
+- **Tests** (`reference/self-test/pr-review-gate.test.ts`): bot deadline before and after, a person without a
+  deadline, unresolved threads fail even while reviewers are pending, latest review decides, no reviewer requested,
+  drafts, bot detection and teams, unknown request time, page overflow, the `totalCount` regression, exit codes and
+  `review.pr` loading.
+
 ## `wt` — worktree tooling
 
 | Subcommand | Behaviour |

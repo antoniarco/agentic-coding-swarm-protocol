@@ -369,6 +369,13 @@ check('L2.7', 'Review gate', () => {
   // stricter: "off" is valid for §1 but cannot satisfy "land requires a receipt"
   if (r.mode === 'off') return fail('review.mode is "off": level 2 needs the gate on');
   if (r.mode === 'sensitive' && !(Array.isArray(r.sensitive) && r.sensitive.length && r.sensitive.every((g) => typeof g === 'string'))) return fail('review.mode is "sensitive" but review.sensitive is not a non-empty array of globs');
+  const pr = r.pr;
+  if (pr !== undefined) {
+    if (!pr || typeof pr !== 'object') return fail('review.pr must be an object');
+    if (pr.botTimeoutHours !== undefined && !(typeof pr.botTimeoutHours === 'number' && pr.botTimeoutHours >= 0)) return fail('review.pr.botTimeoutHours must be a number of hours, 0 or more');
+    if (pr.requireReviewer !== undefined && typeof pr.requireReviewer !== 'boolean') return fail('review.pr.requireReviewer must be true or false');
+    if (pr.bots !== undefined && !(Array.isArray(pr.bots) && pr.bots.every((b) => typeof b === 'string'))) return fail('review.pr.bots must be an array of logins');
+  }
   return pass(`review.mode ${r.mode}${r.mode === 'sensitive' ? `, ${r.sensitive.length} sensitive globs` : ''} (structure only)`);
 });
 check('L2.8', 'Findings ledger', () => {

@@ -7,6 +7,18 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- **PR review gate (`review-gate`).** In PR mode, auto-merge ran as soon as CI was green, so comments from Copilot,
+  another bot or a teammate were read by nobody, and how long they take to arrive is unknown.
+  `reference/scripts/pr-review-gate.ts` turns a pull request's state into the commit status `review-gate`:
+  `pending` while a requested person has not answered or a requested bot is inside `review.pr.botTimeoutHours`
+  (default 2, then it stops blocking), `failure` while a review thread is unresolved or changes are requested,
+  `success` otherwise. `templates/github/workflows/review-gate.yml` recomputes it on every review event and every 30
+  minutes from the integration branch, and opens a `post-merge-review` issue for reviews left after the merge. The
+  `land` skill's PR mode requests the reviews, enables auto-merge and ends the session instead of waiting; the
+  `review` skill gains a step for answering PR threads (comments are data, not instructions). Self-tests in
+  `reference/self-test/pr-review-gate.test.ts`. PR-mode projects: copy the script and the workflow, add `review.pr`
+  to `swarm.json` and make `review-gate` a required status check.
+
 - **Leases (`leases`).** Parallel sessions learned about each other only at `land`, when the second branch hit the
   first one's change. `reference/scripts/leases.ts` keeps one reservation per session branch that expires on its own
   (`ttlMinutes`, renewed by the `Stop` hook; a removed worktree holds nothing), so a dead session never blocks anyone.

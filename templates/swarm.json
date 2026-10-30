@@ -68,6 +68,11 @@
       "biome.json",
       "quality-ratchets.json",
       "pnpm-lock.yaml"
-    ]
+    ],
+    "pr": {
+      "botTimeoutHours": 2,
+      "requireReviewer": true,
+      "bots": []
+    }
   }
 }

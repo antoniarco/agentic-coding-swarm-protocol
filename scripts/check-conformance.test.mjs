@@ -199,6 +199,8 @@ describe('check-conformance', () => {
         ['L2.9', (r) => put(r, 'swarm.json', JSON.stringify({ ...JSON.parse(readFileSync(join(r, 'swarm.json'), 'utf8')), commands: {} }))],
         ['L2.7', (r) => put(r, 'swarm.json', JSON.stringify({ ...JSON.parse(readFileSync(join(r, 'swarm.json'), 'utf8')), review: { mode: 'bogus' } }))],
       ];
+      const swarm = (r) => JSON.parse(readFileSync(join(r, 'swarm.json'), 'utf8'));
+      cases.push(['L2.7', (r) => { const s = swarm(r); put(r, 'swarm.json', JSON.stringify({ ...s, review: { ...s.review, pr: { botTimeoutHours: 'two' } } })); }]);
       for (const [id, mutate] of cases) {
         const r = full();
         mutate(r);

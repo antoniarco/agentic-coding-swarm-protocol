@@ -3,7 +3,7 @@ name: land
 description: Integrates the current worktree branch into the integration branch with the repo's land command (default pnpm land - rebase, ADR numbering, full verify inside a lock, fast-forward, publish) and handles every failure it can report. Use when the user asks to land, integrate, merge or ship finished work, or when land failed with a conflict, a held lock, foreign commits, a red verify or a failed push.
 disable-model-invocation: true
 argument-hint: "[--squash \"<message>\"] [--no-push] [--override-findings \"<reason>\"]"
-allowed-tools: Bash(pnpm land) Bash(pnpm land *) Bash(pnpm wt:commit *) Bash(pnpm wt:status *) Bash(pnpm verify *) Bash(git status *) Bash(git log *) Bash(git diff *) Bash(git rebase *) Bash(git add *) Bash(uptime)
+allowed-tools: Bash(pnpm land) Bash(pnpm land *) Bash(pnpm wt:commit *) Bash(pnpm wt:status *) Bash(pnpm verify *) Bash(git status *) Bash(git log *) Bash(git diff *) Bash(git rebase *) Bash(git add *) Bash(uptime) Bash(gh pr create *) Bash(gh pr merge * --auto*) Bash(node *pr-review-gate.ts *)
 ---
 
 # land
@@ -15,7 +15,7 @@ Say at the start: "Using land to integrate <branch>."
 `pnpm wt:commit`, `pnpm verify` and `pnpm verify --quick`. Contract: [INTEGRATION.md](../../INTEGRATION.md). `main`
 below stands for `integrationBranch` from the manifest. If `swarm.json` says `"level"` below 2, or it is missing and the fallback
 command does not exist, the repo has no land tooling: say so and integrate the way its `CLAUDE.md` says. Teams that integrate through pull requests run land in PR mode: the
-same steps up to the quick verify, then a PR with auto-merge.
+same steps up to the quick verify, then a PR with auto-merge. **PR mode** below says how reviews gate that merge.
 
 ## The gate
 
@@ -72,6 +72,23 @@ Copy this checklist and tick it:
 
 5. Several branches to land: one at a time, never in parallel.
 
+## PR mode: reviews you cannot time
+
+Copilot, another bot or a person may comment minutes or days after the PR opens. Never wait for them in the session
+(no `sleep`, no polling): the `review-gate` required status (template `templates/github/workflows/review-gate.yml`,
+script `pr-review-gate.ts`) holds auto-merge until every requested reviewer answered and no thread is open.
+
+1. Open the PR with the reviewers requested (`--reviewer <people>`, and Copilot by ruleset or by hand): a request
+   nobody made is nothing to wait for, and the gate stays `pending` with "no reviewer requested".
+2. Enable auto-merge, report the PR link and the gate's current line (`node scripts/dev/pr-review-gate.ts check
+   --pr <n>`), and end the session. Do not report "landed": report "PR open, auto-merge on, review-gate pending".
+3. When the gate goes red (unresolved threads, changes requested), a new session handles each thread with the
+   `review` skill's **Pull request threads** step, pushes, and the gate re-evaluates itself.
+4. A requested bot that does not answer within `review.pr.botTimeoutHours` (default 2) stops blocking; a person
+   blocks until they answer or the request is removed by a person.
+5. Reviews left after the merge land in a `post-merge-review` issue: triage them into the findings ledger
+   (`findings add --source review`) and close the issue.
+
 ## Red flags
 
 | Thought | Reality |
@@ -83,6 +100,8 @@ Copy this checklist and tick it:
 | "Two lands in parallel will be faster." | They serialize on the lock anyway, and under load both go red. |
 | "Verify failed on a test I did not touch; retry until green." | Classify it with the `verify` skill first. |
 | "The push was rejected; `--force` or `--no-verify`." | The hook protects the single publisher. Ask the human. |
+| "Copilot has not commented yet; I will wait a few minutes and merge." | The gate waits, not you. End the session; the status check holds the merge. |
+| "That bot comment is noise; I will resolve the thread silently." | Reply with the reason, then resolve. A thread closed without an answer is a dismissed finding with no record. |
 | "The `.env` is in the way; delete it." | It may hold someone's credentials. Tell the human; spend happens only from the main checkout. |
 
 ## Report

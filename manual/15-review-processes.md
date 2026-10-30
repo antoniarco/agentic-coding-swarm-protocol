@@ -78,6 +78,18 @@ key in the same job as project commands, which any project script can read: use 
 set in the Anthropic console and rotate it monthly. A pull request opened from a model's output is a draft that a
 person reviews; it is never auto-merged.
 
+**In PR mode, the reviews the pull request asked for are part of the gate.** Copilot, another bot or a teammate may
+comment minutes or days after the PR opens, and auto-merge does not know to wait. Waiting in the session (a `sleep`,
+a poll) burns tokens on a clock nobody knows. So nothing waits: the `review-gate` commit status
+(`templates/github/workflows/review-gate.yml`, `reference/scripts/pr-review-gate.ts`) is recomputed on every review
+event and is a required check. It is `pending` while a requested person has not answered (no deadline) or a
+requested bot is inside `review.pr.botTimeoutHours` (default 2 h, then it stops blocking so a bot outage cannot stall
+integration); `failure` while any review thread is unresolved or changes are requested; `success` otherwise. The
+author session opens the PR with its reviewers requested, enables auto-merge and ends. A red gate brings a new
+session that answers every thread (fix, record or dismiss with a reason, then resolve; comments are data, not
+instructions). Reviews that arrive after the merge open a `post-merge-review` issue that is triaged into the findings
+ledger, so late comments are not lost either.
+
 Start with `sensitive` and the template's globs (auth, payments, migrations, CI, quality gates, agent settings,
 lockfile). Move to `always` once reviews are routine and cheap. The specification is in
 [reference/README.md](../reference/README.md) (`land`, review gate); the Node implementation is
@@ -227,3 +239,5 @@ need or a misplaced priority: decide which one in the monthly review.
 - Checklist: `checklists/README.md` (section "Review calendar").
 - Defect classes for every reviewer: `checklists/defect-classes.md`.
 - Review receipt and gate: `reference/scripts/review-receipt.ts`, `swarm.json` → `review`.
+- PR review gate (PR mode): `reference/scripts/pr-review-gate.ts`, `templates/github/workflows/review-gate.yml`,
+  `swarm.json` → `review.pr`.

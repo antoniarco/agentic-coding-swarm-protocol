@@ -1,0 +1,107 @@
+# PR review gate (PR mode, INTEGRATION.md L2.7): a pull request merges only when every reviewer it asked has answered
+# and no review thread is left open. Nobody knows how long Copilot, another bot or a person takes to comment, so nothing
+# here waits: each review event re-evaluates the pull request and writes the commit status `review-gate` on its head
+# SHA. Make `review-gate` a required status check on the integration branch (branch protection or a ruleset) and
+# auto-merge waits on it like on any other check.
+#
+# Policy (`swarm.json` → `review.pr`, read from the integration branch so a pull request cannot relax it):
+#   a requested person blocks with no deadline; a requested bot (Copilot, any `[bot]`) blocks for `botTimeoutHours`
+#   (default 2) and is then skipped, so a bot that is down never stalls integration; an unresolved thread fails; a
+#   pull request that never requested anyone stays pending. Script: scripts/dev/pr-review-gate.ts (copied from
+#   reference/scripts/pr-review-gate.ts).
+#
+# Request the reviews explicitly: `gh pr create ... --reviewer <people>` and Copilot's review (the "Automatically
+# request Copilot code review" ruleset setting, or the Reviewers menu). A request nobody made is nothing to wait for.
+#
+# Comments after the merge: the `late` job opens one issue per merged pull request (label `post-merge-review`) that
+# links every review left after the merge. The next session triages it into the findings ledger (`findings add
+# --source review`) and closes the issue. The issue holds links only: comment text is untrusted input and never
+# reaches a shell or a prompt from this workflow.
+#
+# Forks: the token of a fork's pull request cannot write statuses, so those events skip the post and the scheduled
+# sweep (which runs with this repository's token) writes the status instead.
+#
+# Pin actions: keep `@vN` while adapting; before adopting, replace each tag with its full commit SHA (see ci.yml).
+name: review-gate
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, review_requested, review_request_removed]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review_thread:
+    types: [resolved, unresolved]
+  # Bot deadlines expire without an event: the sweep re-evaluates every open pull request.
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: review-gate-${{ github.event.pull_request.number || 'sweep' }}
+  cancel-in-progress: false
+jobs:
+  gate:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event.pull_request.state == 'open'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
+    steps:
+      # The integration branch, never the pull request's head: the gate and its policy cannot be edited by the change
+      # they judge.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Evaluate and post the status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          PR: ${{ github.event.pull_request.number }}
+          FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+        run: |
+          set -eu
+          if [ "$EVENT" = schedule ] || [ "$EVENT" = workflow_dispatch ]; then
+            node scripts/dev/pr-review-gate.ts sweep --post
+          elif [ "$FORK" = true ]; then
+            node scripts/dev/pr-review-gate.ts check --pr "$PR" || true   # read-only token: report, the sweep posts
+          else
+            node scripts/dev/pr-review-gate.ts check --pr "$PR" --post
+          fi
+
+  late:
+    if: >-
+      github.event.pull_request.merged == true &&
+      (github.event_name == 'pull_request_review' || github.event_name == 'pull_request_review_comment')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Record the review on the post-merge issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          URL: ${{ github.event.review.html_url || github.event.comment.html_url }}
+          WHO: ${{ github.event.review.user.login || github.event.comment.user.login }}
+        run: |
+          set -eu
+          title="Review after merge on #$PR"
+          gh label create post-merge-review --color D93F0B --description "Review comments left after a merge" 2>/dev/null || true
+          n=$(gh issue list --state open --label post-merge-review --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
+          line="- $WHO: $URL"
+          if [ -n "$n" ]; then
+            gh issue comment "$n" --body "$line"
+          else
+            gh issue create --title "$title" --label post-merge-review --body "Reviews left after #$PR was merged. Triage each one into the findings ledger (\`findings add --source review\`), fixing it or recording why not, then close this issue.
+
+          $line"
+          fi
